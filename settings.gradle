@@ -1,0 +1,3 @@
+include ":common", ":addon-core"
+
+rootProject.name = 'streamio-addon'

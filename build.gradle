@@ -1,0 +1,123 @@
+buildscript {
+    dependencies {
+        classpath "org.springframework.boot:spring-boot-gradle-plugin:$spring_parent_version"
+        classpath "io.spring.gradle:dependency-management-plugin:$spring_management_version"
+        classpath "io.freefair.gradle:lombok-plugin:$lombok_version"
+        classpath "gradle.plugin.com.github.spotbugs:spotbugs-gradle-plugin:$spotbugs_version"
+    }
+}
+
+plugins {
+    id 'build-dashboard'
+}
+
+buildDashboard {
+    reports {
+        html {
+            destination file("build/reports")
+        }
+    }
+}
+
+allprojects {
+    group = "$group"
+    version = "$version"
+
+    repositories {
+        mavenCentral()
+    }
+
+    configurations {
+        developmentOnly
+        runtimeClasspath {
+            extendsFrom developmentOnly
+        }
+    }
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'io.spring.dependency-management'
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.freefair.lombok'
+    apply plugin: 'com.github.spotbugs'
+    apply plugin: 'checkstyle'
+    apply plugin: 'jacoco'
+
+    generateLombokConfig.enabled = false
+
+    dependencyManagement {
+        dependencies {
+        }
+    }
+
+    dependencies {
+        developmentOnly "org.springframework.boot:spring-boot-devtools"
+        developmentOnly "org.springframework.boot:spring-boot-configuration-processor"
+        testImplementation "org.springframework.boot:spring-boot-starter-test"
+    }
+
+    test {
+        reports.html.destination = file("${rootProject.buildDir}/reports/${project.name}/tests/test")
+        reports.junitXml.enabled false
+    }
+
+//    QA plugins
+    
+    // Jacoco
+    check.dependsOn(jacocoTestReport)
+    check.dependsOn(jacocoTestCoverageVerification)
+    jacoco.reportsDir = file("${rootProject.buildDir}/reports/${project.name}/jacoco")
+    jacocoTestCoverageVerification {
+        violationRules {
+            // Line Coverage
+            rule {
+                element = 'CLASS'
+                limit {
+                    counter = 'LINE'
+                    value = 'COVEREDRATIO'
+                    minimum = jacoco_lineCoverageThreshold as Double
+                }
+                excludes = ['com.streamio.AddOnApplication']
+            }
+            // Branch Coverage
+            rule {
+                element = 'CLASS'
+                limit {
+                    counter = 'BRANCH'
+                    value = 'COVEREDRATIO'
+                    minimum = jacoco_branchCoverageThreshold as Double
+                }
+                excludes = ['com.streamio.AddOnApplication']
+            }
+        }
+    }
+    
+    // Spotbugs
+    spotbugs {
+        toolVersion = "$spotbugs_tool_version"
+        ignoreFailures = false
+    }
+    tasks.withType(com.github.spotbugs.SpotBugsTask) {
+        if (it.name.contains("Test"))
+            reports.html.destination file("${rootProject.buildDir}/reports/${project.name}/spotbugs/test.html")
+        else
+            reports.html.destination file("${rootProject.buildDir}/reports/${project.name}/spotbugs/main.html")
+        reports.html.enabled true
+        reports.xml.enabled false
+    }
+
+    // CheckStyle
+    checkstyle {
+        configFile file("$configDir/google_checks.xml")
+        toolVersion = "$checkstyle_version"
+    }
+    tasks.withType(Checkstyle) {
+        if (it.name.contains("Test"))
+            reports.html.destination file("${rootProject.buildDir}/reports/${project.name}/checkstyle/test.html")
+        else
+            reports.html.destination file("${rootProject.buildDir}/reports/${project.name}/checkstyle/main.html")
+        reports.html.enabled true
+        reports.xml.enabled false
+    }
+}
