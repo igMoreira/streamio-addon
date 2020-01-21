@@ -57,6 +57,10 @@ subprojects {
         testImplementation "org.springframework.boot:spring-boot-starter-test"
     }
 
+    processResources {
+        expand(project.properties)
+    }
+
     test {
         reports.html.destination = file("${rootProject.buildDir}/reports/${project.name}/tests/test")
         reports.junitXml.enabled false
@@ -78,7 +82,7 @@ subprojects {
                     value = 'COVEREDRATIO'
                     minimum = jacoco_lineCoverageThreshold as Double
                 }
-                excludes = ['com.streamio.AddOnApplication']
+                excludes = ['com.stremio.AddOnApplication']
             }
             // Branch Coverage
             rule {
@@ -88,7 +92,7 @@ subprojects {
                     value = 'COVEREDRATIO'
                     minimum = jacoco_branchCoverageThreshold as Double
                 }
-                excludes = ['com.streamio.AddOnApplication']
+                excludes = ['com.stremio.AddOnApplication']
             }
         }
     }

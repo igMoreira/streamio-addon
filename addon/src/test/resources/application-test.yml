@@ -1,0 +1,9 @@
+source:
+  type: direct
+  path: source
+  properties:
+
+destination:
+  type: mock
+  path: destination
+  properties:

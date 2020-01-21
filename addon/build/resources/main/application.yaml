@@ -1,0 +1,17 @@
+spring:
+  mvc:
+    pathmatch:
+      use-suffix-pattern: true
+
+stremio:
+  manifest:
+    id: sample.stremio.addon
+    name: HelloPlugin
+    version: 1.0.0
+    description: >-
+      This is my plugin description.
+      This is just a sample.
+    logo: https://www.stremio.com/website/stremio-logo-small.png
+    resources:
+      - catalog
+      - stream
